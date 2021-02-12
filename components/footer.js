@@ -4,7 +4,7 @@ export const Footer = () => {
   return (
     <footer className="mt-16 lg:mt-64 text-white bg-gray-900 md:p-16 sm:p-8 p-4 leading-7">
       <p className="text-2xl mb-4">Nx Workshop</p>
-      <p>A workshop create by surfers to other surfers or friends</p>
+      <p>A workshop create by surfers to surfers and friends</p>
       <p>
         Built by{' '}
         <a

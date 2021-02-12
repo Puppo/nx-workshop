@@ -1,0 +1,216 @@
+---
+title: Nx working together
+type: lesson
+number: '4'
+---
+
+In this section, we shared the from backend to frontend to prevent integration
+bugs.
+
+The first step is creating a new agnostic framework library that contains the
+share interfaces. For to do this, we need to add another nx schematics
+"nrwl/web"
+
+```
+> npm install -save-dev @nrwl/web
+> npm run nx -- generate @nrwl/workspace:library --name=api-interfaces --directory=hero
+```
+
+_libs/hero/api-interfaces/src/lib/hero-api-interfaces.ts_
+
+```
+export type HeroDTO = {
+  id: string;
+  name: string;
+  image: string;
+  powerstats: {
+    intelligence: number;
+    strength: number;
+    speed: number;
+    durability: number;
+    power: number;
+    combat: number;
+  };
+};
+```
+
+_apps/hero-app/src/app/app.module.ts_
+
+```
+import { BrowserModule } from '@angular/platform-browser';
+import { NgModule } from '@angular/core';
+import { HttpClientModule } from '@angular/common/http'; // <-- add
+import { HeroUiModule } from '@flowing/hero/ui';
+
+import { AppComponent } from './app.component';
+
+@NgModule({
+  declarations: [AppComponent],
+  imports: [BrowserModule, HttpClientModule, HeroUiModule], // <-- update with HttpClientModule
+  providers: [],
+  bootstrap: [AppComponent],
+})
+export class AppModule {}
+```
+
+_libs/hero/controllers/src/lib/controllers/hero-controller/hero-controller.controller.ts_
+
+```
+import { Controller, Get } from '@nestjs/common';
+import { HeroDTO } from '@flowing/hero/api-interfaces';
+
+@Controller('hero')
+export class HeroControllerController {
+  private heros: HeroDTO[] = [
+    {
+      id: '732',
+      name: 'Ironman',
+      powerstats: {
+        intelligence: 100,
+        strength: 85,
+        speed: 58,
+        durability: 85,
+        power: 100,
+        combat: 64,
+      },
+      image: 'https://www.superherodb.com/pictures2/portraits/10/100/85.jpg',
+    },
+    {
+      id: '332',
+      name: 'Hulk',
+      powerstats: {
+        intelligence: 88,
+        strength: 100,
+        speed: 63,
+        durability: 100,
+        power: 98,
+        combat: 85,
+      },
+      image: 'https://www.superherodb.com/pictures2/portraits/10/100/83.jpg',
+    },
+    {
+      id: '149',
+      name: 'Captain America',
+      powerstats: {
+        intelligence: 69,
+        strength: 19,
+        speed: 38,
+        durability: 55,
+        power: 60,
+        combat: 100,
+      },
+      image: 'https://www.superherodb.com/pictures2/portraits/10/100/274.jpg',
+    },
+  ];
+
+  @Get()
+  public get(): Promise<HeroDTO[]> {
+    return Promise.resolve(this.heros);
+  }
+}
+```
+
+_libs/hero/data-access/src/lib/services/hero-api.service.ts_
+
+```
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, of } from 'rxjs';
+import { HeroDTO } from '@flowing/hero/api-interfaces';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class HeroApiService {
+  constructor(private http: HttpClient) {}
+
+  getHeros(): Observable<HeroDTO[]> {
+    return this.http.get<HeroDTO[]>('/api/hero');
+  }
+}
+```
+
+_libs/hero/ui/src/lib/components/hero-viewer/hero-viewer.component.ts_
+
+```
+import { Component, Input } from '@angular/core';
+import { HeroDTO } from '@flowing/hero/api-interfaces';
+
+@Component({
+  selector: 'flw-hero-viewer',
+  template: `
+    <div class="card">
+      <img [src]="hero.image" class="card-img-top" [alt]="hero.name" />
+      <div class="card-body">
+        <div class="card-text">
+          <b>{{ hero.name }}</b>
+          <ul>
+            <li>Intelligence: {{ hero.powerstats.intelligence }}</li>
+            <li>Strength: {{ hero.powerstats.strength }}</li>
+            <li>Speed: {{ hero.powerstats.speed }}</li>
+            <li>Durability: {{ hero.powerstats.durability }}</li>
+            <li>Power: {{ hero.powerstats.power }}</li>
+            <li>Combat: {{ hero.powerstats.combat }}</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  `,
+  styles: [
+    `
+      ul {
+        padding: 0;
+      }
+
+      ul li {
+        list-style-type: none;
+      }
+    `,
+  ],
+})
+export class HeroViewerComponent {
+  @Input() hero: HeroDTO;
+}
+```
+
+add new file to proxy http request in dev module
+
+_apps/hero-app/proxy.conf.json_
+
+```
+{
+    "/api": {
+        "target": "http://localhost:3333",
+        "secure": false
+    }
+}
+```
+
+and add this configuration in the workspace.json
+
+```
+...
+"serve": {
+  "executor": "@angular-devkit/build-angular:dev-server",
+  "options": {
+    "browserTarget": "hero-app:build",
+    "proxyConfig": "apps/hero-app/proxy.conf.json" // <--
+  },
+  "configurations": {
+    "production": {
+      "browserTarget": "hero-app:build:production"
+    }
+  }
+},
+...
+```
+
+now in two different terminal run
+
+```
+npm run nx serve hero-app
+npm run nx serve hero-api
+```
+
+Navigate to the [angular app](http://localhost:4200) and now you show the
+angular app fetching data from the api app
