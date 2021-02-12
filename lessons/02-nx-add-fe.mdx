@@ -1,0 +1,195 @@
+---
+title: Nx Add Frontend app
+type: lesson
+number: '2'
+---
+
+In this section, we add to our workspace a Frontend app and a frontend library
+For this workshop, I decided to use Angular like frontend framework, but you
+could choose your favorite from
+(Angular)[https://nx.dev/latest/angular/getting-started/getting-started] or
+[React](https://nx.dev/latest/react/getting-started/getting-started).
+
+Now starting to add our new Angular Application. Before add the application we
+have to install e @nrwl dependence specialized to manage angular framework
+
+```
+> npm install --save-dev @nrwl/angular
+> npm run nx -- generate @nrwl/angular:application --name=hero-app --style=scss --prefix=flw
+? Would you like to configure routing for this application? No
+> npm run nx -- generate @nrwl/angular:library --name=data-access --directory=hero --style=scss --prefix=flw
+> npm run nx -- generate @nrwl/angular:library --name=ui --directory=hero --style=scss --prefix=flw
+> npm run start
+> npm run nx -- generate @schematics/angular:service --name=hero-api --path=libs/hero/data-access/src/lib/services
+> npm run nx -- generate @schematics/angular:component --name=hero-viewer --path=libs/hero/ui/src/lib/components
+```
+
+_libs/hero/data-access/src/lib/services/hero-api.service.ts_
+
+```ts
+import { Injectable } from '@angular/core'
+import { Observable, of } from 'rxjs'
+
+export type HeroDTO = {
+  id: string
+  name: string
+  image: string
+  powerstats: {
+    intelligence: number
+    strength: number
+    speed: number
+    durability: number
+    power: number
+    combat: number
+  }
+}
+
+@Injectable({
+  providedIn: 'root',
+})
+export class HeroApiService {
+  private heros: HeroDTO[] = [
+    {
+      id: '732',
+      name: 'Ironman',
+      powerstats: {
+        intelligence: 100,
+        strength: 85,
+        speed: 58,
+        durability: 85,
+        power: 100,
+        combat: 64,
+      },
+      image: 'https://www.superherodb.com/pictures2/portraits/10/100/85.jpg',
+    },
+    {
+      id: '332',
+      name: 'Hulk',
+      powerstats: {
+        intelligence: 88,
+        strength: 100,
+        speed: 63,
+        durability: 100,
+        power: 98,
+        combat: 85,
+      },
+      image: 'https://www.superherodb.com/pictures2/portraits/10/100/83.jpg',
+    },
+    {
+      id: '149',
+      name: 'Captain America',
+      powerstats: {
+        intelligence: 69,
+        strength: 19,
+        speed: 38,
+        durability: 55,
+        power: 60,
+        combat: 100,
+      },
+      image: 'https://www.superherodb.com/pictures2/portraits/10/100/274.jpg',
+    },
+  ]
+
+  getHeros(): Observable<HeroDTO[]> {
+    return of(this.heros)
+  }
+}
+```
+
+_libs/hero/data-access/src/index.ts_
+
+```ts
+export * from './lib/hero-data-access.module'
+export * from './lib/services/hero-api.service'
+```
+
+_libs/hero/ui/src/lib/components/hero-viewer/hero-viewer.component.ts_
+
+```ts
+import { Component, Input } from '@angular/core'
+import { HeroDTO } from '@flowing/hero/data-access'
+
+@Component({
+  selector: 'flw-hero-viewer',
+  template: `
+    <div class="card">
+      <img [src]="hero.image" class="card-img-top" [alt]="hero.name" />
+      <div class="card-body">
+        <div class="card-text">
+          <b>{{ hero.name }}</b>
+          <ul>
+            <li>Intelligence: {{ hero.powerstats.intelligence }}</li>
+            <li>Strength: {{ hero.powerstats.strength }}</li>
+            <li>Speed: {{ hero.powerstats.speed }}</li>
+            <li>Durability: {{ hero.powerstats.durability }}</li>
+            <li>Power: {{ hero.powerstats.power }}</li>
+            <li>Combat: {{ hero.powerstats.combat }}</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  `,
+  styles: [
+    `
+      ul {
+        padding: 0;
+      }
+
+      ul li {
+        list-style-type: none;
+      }
+    `,
+  ],
+})
+export class HeroViewerComponent {
+  @Input() hero: HeroDTO
+}
+```
+
+_apps/hero-app/src/app/app.module.ts_
+
+```ts
+import { BrowserModule } from '@angular/platform-browser'
+import { NgModule } from '@angular/core'
+import { HeroUiModule } from '@flowing/hero/ui'
+
+import { AppComponent } from './app.component'
+
+@NgModule({
+  declarations: [AppComponent],
+  imports: [BrowserModule, HeroUiModule],
+  providers: [],
+  bootstrap: [AppComponent],
+})
+export class AppModule {}
+```
+
+_apps/hero-app/src/app/app.component.ts_
+
+```
+import { Component } from '@angular/core';
+import { HeroApiService } from '@flowing/hero/data-access';
+
+@Component({
+  selector: 'flw-root',
+  template: `
+    <div class="flw-root flex row">
+      <div class="col-4" *ngFor="let hero of heros$ | async">
+        <flw-hero-viewer [hero]="hero"></flw-hero-viewer>
+      </div>
+    </div>
+  `,
+  styles: [
+    `
+      .flw-root {
+        margin: 20px 0;
+      }
+    `,
+  ],
+})
+export class AppComponent {
+  heros$ = this.heroApiSv.getHeros();
+
+  constructor(protected heroApiSv: HeroApiService) {}
+}
+```

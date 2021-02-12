@@ -16,8 +16,8 @@ const LessonsList = ({ lessons }) => {
     <>
       {lessons.map((lesson) => (
         <Fragment key={lesson.slug}>
-          <li className="border border-b-0 last:border-b first:rounded-t-md last:rounded-b-md border-gray-200 bg-white hover:bg-pink-50">
-            <Link href={`/course/${lesson.slug}`}>
+          <li className="border border-b-0 text-black last:border-b first:rounded-t-md last:rounded-b-md border-gray-200 bg-white hover:bg-gray-100">
+            <Link href={`/workshop/${lesson.slug}`}>
               <a
                 className={`block p-2 ${
                   lesson.parentSlug ? 'pl-8 text-sm' : ''
@@ -54,7 +54,7 @@ const Index = ({ lessons }) => {
   return (
     <Layout widthClass="max-w-3xl w-full">
       <div className="prose my-8">
-        <h1>Course outline</h1>
+        <h1>Workshop outline</h1>
       </div>
       {lessons ? (
         <>

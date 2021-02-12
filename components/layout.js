@@ -3,11 +3,11 @@ import { Footer } from './footer'
 import Header from './header'
 
 const Layout = ({ children, title, widthClass = 'w-full max-w-3xl' }) => (
-  <div className="flex flex-col items-stretch min-h-screen">
+  <div className="bg-gray-800 flex flex-col items-stretch min-h-screen">
     <Head>
       <title>
         {title && `${title.replace(/<[^>]*>/g, '')} - `}
-        Next.js course template
+        Nx Workshop
       </title>
     </Head>
 

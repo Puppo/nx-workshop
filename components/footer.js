@@ -2,32 +2,27 @@ import Link from 'next/link'
 
 export const Footer = () => {
   return (
-    <footer className="mt-16 lg:mt-64 bg-pink-900 text-pink-200 md:p-16 sm:p-8 p-4 leading-7">
-      <p className="text-2xl mb-4">
-        <Link href="/">
-          <a className="text-white">Next.js course template</a>
-        </Link>
-      </p>
-      <p>A template to create courses with React</p>
-      <p>Made in Montréal, Québec 🇨🇦</p>
+    <footer className="mt-16 lg:mt-64 text-white bg-gray-900 md:p-16 sm:p-8 p-4 leading-7">
+      <p className="text-2xl mb-4">Nx Workshop</p>
+      <p>A workshop create by surfers to other surfers or friends</p>
       <p>
         Built by{' '}
         <a
-          className="text-white"
+          className="text-white hover:underline"
           href="https://scastiel.dev"
           target="_blank"
           rel="noopener noreferrer"
         >
-          Sebastien Castiel
+          Luca Del Puppo
         </a>{' '}
         (
         <a
-          className="text-white"
-          href="https://twitter.com/scastiel"
+          className="text-white hover:underline"
+          href="https://twitter.com/puppo92"
           target="_blank"
           rel="noopener noreferrer"
         >
-          @scastiel
+          @puppo92
         </a>
         )
       </p>

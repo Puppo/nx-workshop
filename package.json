@@ -1,5 +1,5 @@
 {
-  "name": "nextjs-course",
+  "name": "nx-workshop",
   "scripts": {
     "dev": "next",
     "build": "next build",
