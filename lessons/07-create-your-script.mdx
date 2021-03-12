@@ -1,0 +1,63 @@
+---
+title: Nx Create Your script
+type: lesson
+number: '7'
+---
+
+```
+> npm run nx run hero-app:build
+```
+
+```
+> npm i -D typedoc
+```
+
+```
+> npx typedoc libs/hero/api-interfaces
+```
+
+_workspace.json_
+
+```json
+...
+"hero-api-interfaces": {
+    "root": "libs/hero/api-interfaces",
+    "sourceRoot": "libs/hero/api-interfaces/src",
+    "projectType": "library",
+    "targets": {
+    "lint": {
+        "executor": "@nrwl/linter:eslint",
+        "options": {
+        "lintFilePatterns": [
+            "libs/hero/api-interfaces/**/*.ts"
+        ]
+        }
+    },
+    "test": {
+        "executor": "@nrwl/jest:jest",
+        "outputs": [
+        "coverage/libs/hero/api-interfaces"
+        ],
+        "options": {
+        "jestConfig": "libs/hero/api-interfaces/jest.config.js",
+        "passWithNoTests": true
+        }
+    },
+    "doc": {
+        "executor": "@nrwl/workspace:run-commands",
+        "options": {
+        "commands": [
+            {
+            "command": "npx typedoc libs/hero/api-interfaces"
+            }
+        ]
+        }
+    }
+    }
+}
+...
+```
+
+```
+> npm run nx run hero-api-interfaces:doc
+```
