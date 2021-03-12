@@ -1,0 +1,198 @@
+---
+title: Nx lint deps
+type: lesson
+number: '5'
+---
+
+_.eslintrc.json_
+
+```
+...
+"rules": {
+  "@nrwl/nx/enforce-module-boundaries": [
+    "error",
+    {
+      "enforceBuildableLibDependency": true,
+      "allow": [
+        "library-that-is-globally-available",
+        "anything-in-here-is-fine/**"
+      ],
+      "depConstraints": [
+        {
+          "sourceTag": "type:e2e",
+          "onlyDependOnLibsWithTags": ["type:app"]
+        },
+        {
+          "sourceTag": "type:app",
+          "onlyDependOnLibsWithTags": ["type:feature", "type:util"]
+        },
+        {
+          "sourceTag": "type:feature",
+          "onlyDependOnLibsWithTags": [
+            "type:data-access",
+            "type:ui",
+            "type:util"
+          ]
+        },
+        {
+          "sourceTag": "type:ui",
+          "onlyDependOnLibsWithTags": ["type:ui", "type:util"]
+        },
+        {
+          "sourceTag": "type:data-access",
+          "onlyDependOnLibsWithTags": ["type:util"]
+        },
+        {
+          "sourceTag": "scope:hero",
+          "onlyDependOnLibsWithTags": ["scope:hero", "scope:shared"]
+        },
+        {
+          "sourceTag": "scope:shared",
+          "onlyDependOnLibsWithTags": ["scope:shared"]
+        },
+        {
+          "sourceTag": "platform:web",
+          "onlyDependOnLibsWithTags": ["platform:web", "platform:any"]
+        },
+        {
+          "sourceTag": "platform:node",
+          "onlyDependOnLibsWithTags": ["platform:node", "platform:any"]
+        },
+        {
+          "sourceTag": "platform:any",
+          "onlyDependOnLibsWithTags": ["platform:any"]
+        },
+        {
+          "sourceTag": "stability:production",
+          "onlyDependOnLibsWithTags": ["stability:production"]
+        },
+        {
+          "sourceTag": "stability:experimental",
+          "onlyDependOnLibsWithTags": [
+            "stability:experimental",
+            "stability:production"
+          ]
+        },
+        { "sourceTag": "*", "onlyDependOnLibsWithTags": ["*"] }
+      ]
+    }
+  ]
+}
+...
+```
+
+_nx.json_
+
+```
+...
+"projects": {
+  "hero-app": {
+    "tags": ["type:app", "scope:hero", "platform:web"]
+  },
+  "hero-app-e2e": {
+    "tags": ["type:e2e", "scope:hero", "platform:web"],
+    "implicitDependencies": ["hero-app"]
+  },
+  "hero-data-access": {
+    "tags": ["type:data-access", "scope:hero", "platform:web"]
+  },
+  "hero-api": {
+    "tags": ["type:api", "scope:hero", "platform:node"]
+  },
+  "hero-controllers": {
+    "tags": ["type:feature", "scope:hero", "platform:node"]
+  },
+  "hero-api-interfaces": {
+    "tags": ["type:util", "scope:hero", "platform:any"]
+  },
+  "hero-hero-ui": {
+    "tags": ["type:ui", "scope:hero", "platform:web"]
+  }
+}
+...
+```
+
+```
+> npm run nx -- affected:lint --all
+```
+
+```
+> npm run nx -- g move --project hero-ui hero/hero-list
+```
+
+_nx.json_
+
+```
+...
+"projects": {
+  "hero-app": {
+    "tags": ["type:app", "scope:hero", "platform:web"]
+  },
+  "hero-app-e2e": {
+    "tags": ["type:e2e", "scope:hero", "platform:web"],
+    "implicitDependencies": ["hero-app"]
+  },
+  "hero-data-access": {
+    "tags": ["type:data-access", "scope:hero", "platform:web"]
+  },
+  "hero-api": {
+    "tags": ["type:api", "scope:hero", "platform:node"]
+  },
+  "hero-controllers": {
+    "tags": ["type:feature", "scope:hero", "platform:node"]
+  },
+  "hero-api-interfaces": {
+    "tags": ["type:util", "scope:hero", "platform:any"]
+  },
+  "hero-hero-list": {
+    "tags": ["type:feature", "scope:hero", "platform:web"]
+  }
+}
+...
+```
+
+```
+> nx generate @schematics/angular:component --name=hero-list --project=hero-hero-list --style=scss --export --inlineStyle --inlineTemplate --path=libs/hero/hero-list/src/lib/pages
+```
+
+_libs/hero/hero-list/src/lib/pages/hero-list/hero-list.component.ts_
+
+```ts
+import { Component } from '@angular/core'
+import { HeroApiService } from '@flowing/hero/data-access'
+
+@Component({
+  selector: 'flw-hero-list',
+  template: `
+    <div class="flw-hero-list flex row">
+      <div class="col-4" *ngFor="let hero of heros$ | async">
+        <flw-hero-viewer [hero]="hero"></flw-hero-viewer>
+      </div>
+    </div>
+  `,
+  styles: [
+    `
+      .flw-hero-list {
+        margin: 20px 0;
+      }
+    `,
+  ],
+})
+export class HeroListComponent {
+  heros$ = this.heroApiSv.getHeros()
+
+  constructor(protected heroApiSv: HeroApiService) {}
+}
+```
+
+_apps/hero-app/src/app/app.component.ts_
+
+```ts
+import { Component } from '@angular/core'
+
+@Component({
+  selector: 'flw-root',
+  template: `<flw-hero-list></flw-hero-list>`,
+})
+export class AppComponent {}
+```
