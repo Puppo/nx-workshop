@@ -1,0 +1,66 @@
+---
+title: CI/CD
+type: lesson
+number: '10'
+---
+
+The final step is to create a CI/CD with github actions.
+
+_package.json_
+
+```json
+...
+
+"scripts": {
+  ...
+  "affected:deploy": "nx affected --target=deploy",
+  ...
+}
+...
+```
+
+_.github/workflows/actions.yml_
+
+```
+name: Nx Affected Test & Deploy
+on:
+  push:
+    branches: [main]
+env:
+  BEFORE_SHA: ${{ github.event.before }}
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
+  AWS_DEFAULT_REGION: 'eu-central-1'
+  NG_DEPLOY_AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
+  NG_DEPLOY_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
+  NG_DEPLOY_AWS_BUCKET: 'nx-hero-app'
+  NG_DEPLOY_AWS_REGION: 'eu-central-1'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Use Node.js 12.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+      - run: git fetch origin main
+      - name: npm install
+        run: npm install
+      - name: Run Affected Test
+        shell: bash
+        run: npm run affected:test -- --base=$BEFORE_SHA
+      - name: Run Affected Deploy
+        shell: bash
+        run: npm run affected:deploy -- --base=$BEFORE_SHA
+```
+
+```
+> git rm libs/hero/data-access/src/lib/services/hero-api.service.spec.ts
+> git rm libs/hero/hero-list/src/lib/pages/hero-list/hero-list.component.spec.ts
+> git rm libs/hero/hero-list/src/lib/components/hero-viewer/hero-viewer.component.spec.ts
+> git rm apps/hero-app/src/app/app.component.spec.ts
+```

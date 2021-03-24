@@ -4,12 +4,11 @@ type: lesson
 number: '4'
 ---
 
-In this section, we shared the from backend to frontend to prevent integration
-bugs.
+In this section, we create a new library to shared the DTO types to have a
+single source of truth.
 
 The first step is creating a new agnostic framework library that contains the
-share interfaces. For to do this, we need to add another nx schematics
-"nrwl/web"
+share types. For to do this, we need to add another nx schematics "nrwl/web"
 
 ```
 > npm install -save-dev @nrwl/web
@@ -173,7 +172,8 @@ export class HeroViewerComponent {
 }
 ```
 
-add new file to proxy http request in dev module
+Now we need to add a configuration that proxies our http request in dev mode.
+The first step is add the next file
 
 _apps/hero-app/proxy.conf.json_
 
@@ -186,7 +186,7 @@ _apps/hero-app/proxy.conf.json_
 }
 ```
 
-and add this configuration in the workspace.json
+and the second step is add the next configuration in the _workspace.json_
 
 ```
 ...
@@ -205,12 +205,12 @@ and add this configuration in the workspace.json
 ...
 ```
 
-now in two different terminal run
+To see the result, run two different terminal with the next commands
 
 ```
 npm run nx serve hero-app
 npm run nx serve hero-api
 ```
 
-Navigate to the [angular app](http://localhost:4200) and now you show the
-angular app fetching data from the api app
+Navigate to the [hero-app](http://localhost:4200) so you can see how the angular
+app fetching data from the hero-api app

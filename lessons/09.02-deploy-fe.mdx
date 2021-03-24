@@ -1,0 +1,170 @@
+---
+title: Deploy Frontend
+type: sublesson
+number: '2'
+parentSlug: '09-deploy'
+---
+
+We continue with the Frontend deploy, but before the deploy, we need to review
+our code
+
+```
+> npm run nx workspace-schematic tagged-library tokens
+
+? What type of library is it? Util
+? What app doest this library belong to? shared
+? What platform can this library run on? Web
+? What is the directory? common
+? What is the Prefix? flw
+```
+
+_libs/common/tokens/src/lib/tokens/base-api-url.token.ts_
+
+```ts
+import { InjectionToken } from '@angular/core'
+
+export const BASE_API_URL = new InjectionToken('BASE_API_URL')
+```
+
+_libs/common/tokens/src/index.ts_
+
+```ts
+export * from './lib/common-tokens.module'
+export * from './lib/tokens/base-api-url.token'
+```
+
+_apps/hero-app/src/environments/environment.model.ts_
+
+```ts
+export type Environment = {
+  production: boolean
+  baseApiUrl: string
+}
+```
+
+_apps/hero-app/src/environments/environment.ts_
+
+```ts
+import { Environment } from './environment.model'
+
+export const environment: Environment = {
+  production: false,
+  baseApi: '',
+}
+```
+
+_apps/hero-app/src/environments/environment.prod.ts_
+
+```ts
+import { Environment } from './environment.model'
+
+export const environment: Environment = {
+  production: true,
+  baseApi: '{{backend-url}}',
+}
+```
+
+_apps/hero-app/src/app/app.module.ts_
+
+```
+import { BrowserModule } from '@angular/platform-browser';
+import { NgModule } from '@angular/core';
+import { HttpClientModule } from '@angular/common/http';
+import { HeroHeroListModule } from '@flowing/hero/hero-list';
+import { BASE_API_URL } from '@flowing/common/tokens';
+
+import { AppComponent } from './app.component';
+import { environment } from '../environments/environment';
+
+@NgModule({
+  declarations: [AppComponent],
+  imports: [BrowserModule, HttpClientModule, HeroHeroListModule],
+  providers: [
+    {
+      provide: BASE_API_URL,
+      useValue: environment.baseApiUrl,
+    },
+  ],
+  bootstrap: [AppComponent],
+})
+export class AppModule {}
+```
+
+_libs/hero/data-access/src/lib/services/hero-api.service.ts_
+
+```ts
+import { Observable } from 'rxjs'
+import { Inject, Injectable } from '@angular/core'
+import { HttpClient } from '@angular/common/http'
+
+import { HeroDTO } from '@flowing/hero/api-interfaces'
+import { BASE_API_URL } from '@flowing/common/tokens'
+
+@Injectable({
+  providedIn: 'root',
+})
+export class HeroApiService {
+  constructor(
+    private http: HttpClient,
+    @Inject(BASE_API_URL) private baseApiUrl: string
+  ) {}
+
+  getHeros(): Observable<HeroDTO[]> {
+    return this.http.get<HeroDTO[]>(`${this.baseApiUrl}/api/hero`)
+  }
+}
+```
+
+Finally, the deploy section :)
+
+```
+> npm i -D @jefiozie/ngx-aws-deploy
+```
+
+```
+> aws s3 mb s3://{{bucket-name}} --region=eu-central-1
+> aws s3 website s3://{{bucket-name}} --index-document index.html --error-document index.html
+```
+
+_apps/hero-app/policy.json_
+
+```
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "PublicReadGetObject",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": [
+                "s3:GetObject"
+            ],
+            "Resource": [
+                "arn:aws:s3:::{{bucket-name}}/*"
+            ]
+        }
+    ]
+}
+```
+
+```
+> aws s3api put-bucket-policy --bucket={{bucket-name}} --policy file://apps/hero-app/policy.json
+```
+
+_workspace.json_
+
+```
+...
+"hero-app": {
+  ...
+  "deploy": {
+    "executor": "@jefiozie/ngx-aws-deploy:deploy",
+    "options": {}
+  }
+}
+...
+```
+
+```
+> npx cross-env NG_DEPLOY_AWS_ACCESS_KEY_ID={api-key} NG_DEPLOY_AWS_SECRET_ACCESS_KEY={secret-key} NG_DEPLOY_AWS_BUCKET={bucket} NG_DEPLOY_AWS_REGION=eu-central-1 npm run nx run hero-app:deploy
+```

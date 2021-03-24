@@ -1,0 +1,168 @@
+---
+title: Deploy Backend
+type: sublesson
+number: '1'
+parentSlug: '09-deploy'
+---
+
+Let's start with the backend deploy.
+
+We use [Serverless framework](https://www.serverless.com/).
+
+```
+> npm i serverless-lambda-nestjs
+> npm i -D serverless serverless-layers @types/aws-lambda
+```
+
+_apps/hero-api/src/main.ts_
+
+```ts
+import { Logger } from '@nestjs/common'
+import { NestFactory } from '@nestjs/core'
+import { APIGatewayProxyHandler } from 'aws-lambda'
+import { ServerlessNestjsApplicationFactory } from 'serverless-lambda-nestjs'
+
+import { AppModule } from './app/app.module'
+
+const globalPrefix = 'api'
+
+export async function bootstrap() {
+  const app = await NestFactory.create(AppModule)
+  app.setGlobalPrefix('api')
+  const port = process.env.PORT || 3333
+  await app.listen(port, () => {
+    Logger.log('Listening at http://localhost:' + port + '/' + globalPrefix)
+  })
+}
+
+// Run Nestjs application locally
+if (process.env.NX_CLI_SET) {
+  bootstrap()
+}
+
+// Run Nestjs application in AWS Lambda
+export const handler: APIGatewayProxyHandler = async (event, context) => {
+  const app = new ServerlessNestjsApplicationFactory<AppModule>(
+    AppModule,
+    {
+      // NestFactory.create's option object
+      cors: {
+        origin: '*',
+        allowedHeaders: 'Origin, X-Requested-With, Content-Type, Accept',
+      },
+    },
+    (app) => {
+      app.enableCors()
+      app.setGlobalPrefix(globalPrefix)
+      return app
+    }
+  )
+  const result = await app.run(event, context)
+  return result
+}
+```
+
+_apps/hero-api/serverless.yml_
+
+```
+service: nx-hero-api
+
+frameworkVersion: '>=2.0.0'
+
+custom:
+  prune:
+    automatic: true
+    number: 3
+  serverless-layers:
+    dependenciesPath: ./apps/hero-api/package.json
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  region: eu-central-1
+  deploymentBucket: {{bucket-name}}
+  apiGateway:
+    shouldStartNameWithService: true
+
+plugins:
+  - serverless-layers
+
+package:
+  individually: true
+  include:
+    - dist/apps/hero-api/**
+  exclude:
+    - '**'
+
+functions:
+  main:
+    handler: dist/apps/hero-api/main.handler
+    events:
+      - http:
+          cors: true
+          path: '/'
+          method: any
+      - http:
+          cors: true
+          path: '{proxy+}'
+          method: any
+```
+
+_apps/hero-api/package.json_
+
+```json
+{
+  "name": "hero-api",
+  "dependencies": {
+    "@nestjs/common": "^7.0.0",
+    "@nestjs/core": "^7.0.0",
+    "@nestjs/platform-express": "^7.0.0",
+    "reflect-metadata": "^0.1.13",
+    "rxjs": "~6.6.3",
+    "serverless-lambda-nestjs": "0.0.2",
+    "tslib": "^2.0.0"
+  },
+  "devDependencies": {}
+}
+```
+
+```
+> aws s3 mb s3://{{bucket-name}} --region=eu-central-1
+```
+
+_workspace.json_
+
+```json
+...
+"hero-api": {
+    ...
+    "deploy": {
+        "executor": "@nrwl/workspace:run-commands",
+        "options": {
+        "parallel": false,
+        "commands": [
+                {
+                "command": "npm run nx run hero-api:build:production"
+                },
+                {
+                "command": "sls deploy --config=apps/hero-api/serverless.yml --stage=prod"
+                }
+            ]
+        }
+    }
+}
+...
+```
+
+```
+> npm run nx run hero-api:deploy
+```
+
+_.gitignore_
+
+```
+...
+
+# serverless
+.serverless
+```

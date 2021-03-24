@@ -4,6 +4,44 @@ type: lesson
 number: '5'
 ---
 
+In this step, we defined some rule prevent bad code sharing from different
+platforms and to control the dependencies
+
+```
+> npm run nx -- affected:lint --all
+```
+
+_nx.json_
+
+```
+...
+"projects": {
+  "hero-app": {
+    "tags": ["type:app", "scope:hero", "platform:web"]
+  },
+  "hero-app-e2e": {
+    "tags": ["type:e2e", "scope:hero", "platform:web"],
+    "implicitDependencies": ["hero-app"]
+  },
+  "hero-data-access": {
+    "tags": ["type:data-access", "scope:hero", "platform:web"]
+  },
+  "hero-api": {
+    "tags": ["type:api", "scope:hero", "platform:node"]
+  },
+  "hero-controllers": {
+    "tags": ["type:feature", "scope:hero", "platform:node"]
+  },
+  "hero-api-interfaces": {
+    "tags": ["type:util", "scope:hero", "platform:any"]
+  },
+  "hero-hero-ui": {
+    "tags": ["type:ui", "scope:hero", "platform:web"]
+  }
+}
+...
+```
+
 _.eslintrc.json_
 
 ```
@@ -77,37 +115,6 @@ _.eslintrc.json_
       ]
     }
   ]
-}
-...
-```
-
-_nx.json_
-
-```
-...
-"projects": {
-  "hero-app": {
-    "tags": ["type:app", "scope:hero", "platform:web"]
-  },
-  "hero-app-e2e": {
-    "tags": ["type:e2e", "scope:hero", "platform:web"],
-    "implicitDependencies": ["hero-app"]
-  },
-  "hero-data-access": {
-    "tags": ["type:data-access", "scope:hero", "platform:web"]
-  },
-  "hero-api": {
-    "tags": ["type:api", "scope:hero", "platform:node"]
-  },
-  "hero-controllers": {
-    "tags": ["type:feature", "scope:hero", "platform:node"]
-  },
-  "hero-api-interfaces": {
-    "tags": ["type:util", "scope:hero", "platform:any"]
-  },
-  "hero-hero-ui": {
-    "tags": ["type:ui", "scope:hero", "platform:web"]
-  }
 }
 ...
 ```
