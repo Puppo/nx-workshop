@@ -8,10 +8,9 @@ In this section, we create a new library to shared the DTO types to have a
 single source of truth.
 
 The first step is creating a new agnostic framework library that contains the
-share types. For to do this, we need to add another nx schematics "nrwl/web"
+share types.
 
 ```
-> npm install -save-dev @nrwl/web
 > npm run nx -- generate @nrwl/workspace:library --name=api-interfaces --directory=hero
 ```
 
@@ -31,25 +30,6 @@ export type HeroDTO = {
     combat: number;
   };
 };
-```
-
-_apps/hero-app/src/app/app.module.ts_
-
-```
-import { BrowserModule } from '@angular/platform-browser';
-import { NgModule } from '@angular/core';
-import { HttpClientModule } from '@angular/common/http'; // <-- add
-import { HeroUiModule } from '@flowing/hero/ui';
-
-import { AppComponent } from './app.component';
-
-@NgModule({
-  declarations: [AppComponent],
-  imports: [BrowserModule, HttpClientModule, HeroUiModule], // <-- update with HttpClientModule
-  providers: [],
-  bootstrap: [AppComponent],
-})
-export class AppModule {}
 ```
 
 _libs/hero/controllers/src/lib/controllers/hero-controller/hero-controller.controller.ts_
@@ -107,6 +87,25 @@ export class HeroControllerController {
     return Promise.resolve(this.heros);
   }
 }
+```
+
+_apps/hero-app/src/app/app.module.ts_
+
+```
+import { BrowserModule } from '@angular/platform-browser';
+import { NgModule } from '@angular/core';
+import { HttpClientModule } from '@angular/common/http'; // <-- add
+import { HeroUiModule } from '@flowing/hero/ui';
+
+import { AppComponent } from './app.component';
+
+@NgModule({
+  declarations: [AppComponent],
+  imports: [BrowserModule, HttpClientModule, HeroUiModule], // <-- update with HttpClientModule
+  providers: [],
+  bootstrap: [AppComponent],
+})
+export class AppModule {}
 ```
 
 _libs/hero/data-access/src/lib/services/hero-api.service.ts_

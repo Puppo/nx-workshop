@@ -147,6 +147,21 @@ export class HeroViewerComponent {
 }
 ```
 
+_libs/hero/ui/src/lib/hero-ui.module.ts_
+
+```
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { HeroViewerComponent } from './components/hero-viewer/hero-viewer.component';
+
+@NgModule({
+  imports: [CommonModule],
+  declarations: [HeroViewerComponent],
+  exports: [HeroViewerComponent],
+})
+export class HeroUiModule {}
+```
+
 _apps/hero-app/src/app/app.module.ts_
 
 ```ts
@@ -193,4 +208,21 @@ export class AppComponent {
 
   constructor(protected heroApiSv: HeroApiService) {}
 }
+```
+
+add bootstrap
+
+```
+> npm i bootstrap
+```
+
+_workspace.json_
+
+```
+...
+"styles": [
+  "node_modules/bootstrap/dist/css/bootstrap.css",
+  "apps/hero-app/src/styles.scss"
+],
+...
 ```

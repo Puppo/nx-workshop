@@ -101,7 +101,7 @@ _tools/generators/tagged-library/schema.json_
 _tools/generators/tagged-library/schema.ts_
 
 ```ts
-export interface TaggedLibrarySchemaOptions {
+export type TaggedLibrarySchemaOptions = {
   name: string
   type: 'data-access' | 'feature' | 'ui' | 'util'
   scope: 'shared' | string

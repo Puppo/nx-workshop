@@ -35,7 +35,7 @@ _nx.json_
   "hero-api-interfaces": {
     "tags": ["type:util", "scope:hero", "platform:any"]
   },
-  "hero-hero-ui": {
+  "hero-ui": {
     "tags": ["type:ui", "scope:hero", "platform:web"]
   }
 }
@@ -100,17 +100,6 @@ _.eslintrc.json_
           "sourceTag": "platform:any",
           "onlyDependOnLibsWithTags": ["platform:any"]
         },
-        {
-          "sourceTag": "stability:production",
-          "onlyDependOnLibsWithTags": ["stability:production"]
-        },
-        {
-          "sourceTag": "stability:experimental",
-          "onlyDependOnLibsWithTags": [
-            "stability:experimental",
-            "stability:production"
-          ]
-        },
         { "sourceTag": "*", "onlyDependOnLibsWithTags": ["*"] }
       ]
     }
@@ -159,7 +148,7 @@ _nx.json_
 ```
 
 ```
-> nx generate @schematics/angular:component --name=hero-list --project=hero-hero-list --style=scss --export --inlineStyle --inlineTemplate --path=libs/hero/hero-list/src/lib/pages
+> npm run nx -- generate @schematics/angular:component --name=hero-list --project=hero-hero-list --style=scss --export --inlineStyle --inlineTemplate --path=libs/hero/hero-list/src/lib/pages
 ```
 
 _libs/hero/hero-list/src/lib/pages/hero-list/hero-list.component.ts_
